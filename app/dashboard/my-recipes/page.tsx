@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchRecipesByUserId } from "@/app/lib/data";
 import { redirect } from "next/navigation";
+import DeleteRecipeButton from "@/app/ui/dashboard/delete-recipe-button";
 
 export default async function MyRecipesPage() {
   const session = await auth();
@@ -98,6 +99,18 @@ export default async function MyRecipesPage() {
                   </dd>
                 </div>
               </dl>
+
+              <DeleteRecipeButton
+  recipeId={recipe.id}
+  recipeTitle={recipe.title}
+/>
+
+<Link
+  href={`/dashboard/my-recipes/${recipe.id}/edit`}
+  className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50"
+>
+  Edit recipe
+</Link>
 
               <Link
                 href={`/dashboard/my-recipes/${recipe.id}`}

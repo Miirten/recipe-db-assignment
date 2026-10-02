@@ -2,6 +2,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { fetchRecipeByIdAndUserId } from "@/app/lib/data";
 import { notFound, redirect } from "next/navigation";
+import RecipeTabs from "@/app/ui/dashboard/recipe-tabs";
+import DeleteRecipeButton from "@/app/ui/dashboard/delete-recipe-button";
 
 type RecipePageProps = {
   params: Promise<{
@@ -33,6 +35,11 @@ export default async function RecipePage({ params }: RecipePageProps) {
         ← Back to My Recipes
       </Link>
 
+        <DeleteRecipeButton
+    recipeId={recipe.id}
+    recipeTitle={recipe.title}
+  />
+
       <div className="mt-6">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-600">
           Recipe overview
@@ -47,48 +54,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </p>
       </div>
 
-      <nav
-        aria-label="Recipe sections"
-        className="mt-8 border-b border-stone-200"
-      >
-        <ul className="flex gap-1 overflow-x-auto">
-          <li className="shrink-0">
-            <Link
-              href={`/dashboard/my-recipes/${recipe.id}`}
-              className="block border-b-2 border-orange-600 px-4 py-3 text-sm font-semibold text-orange-700"
-            >
-              Overview
-            </Link>
-          </li>
-
-          <li className="shrink-0">
-            <Link
-              href={`/dashboard/my-recipes/${recipe.id}/ingredients`}
-              className="block border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-stone-600 hover:border-orange-300 hover:text-orange-700"
-            >
-              Ingredients
-            </Link>
-          </li>
-
-          <li className="shrink-0">
-            <Link
-              href={`/dashboard/my-recipes/${recipe.id}/instructions`}
-              className="block border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-stone-600 hover:border-orange-300 hover:text-orange-700"
-            >
-              Instructions
-            </Link>
-          </li>
-
-          <li className="shrink-0">
-            <Link
-              href={`/dashboard/my-recipes/${recipe.id}/notes`}
-              className="block border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-stone-600 hover:border-orange-300 hover:text-orange-700"
-            >
-              Notes
-            </Link>
-          </li>
-        </ul>
-      </nav>
+      <RecipeTabs recipeId={recipe.id} />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">

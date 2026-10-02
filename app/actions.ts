@@ -18,8 +18,137 @@ const RegisterSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
+const IngredientSchema = z.object({
+  name: z.string().trim(),
+  quantity: z.string().trim(),
+  unit: z.string().trim(),
+  price: z
+    .string()
+    .trim()
+    .refine(
+      (value) =>
+        value === "" ||
+        (/^\d+(\.\d{1,2})?$/.test(value) &&
+          Number(value) >= 0 &&
+          Number(value) <= 100000),
+      {
+        message:
+          "Ingredient price must be a non-negative amount with up to two decimal places.",
+      },
+    ),
+});
+
+const RecipeStepSchema = z.object({
+  instruction: z.string().trim(),
+});
+
+const RecipeDetailsSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Recipe title is required.")
+    .max(255, "Recipe title must be 255 characters or fewer."),
+
+  description: z
+    .string()
+    .trim()
+    .max(2000, "Description must be 2,000 characters or fewer.")
+    .optional(),
+
+  cookTime: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) =>
+        value === undefined ||
+        value === "" ||
+        (/^\d+$/.test(value) &&
+          Number(value) >= 0 &&
+          Number(value) <= 1440),
+      {
+        message: "Cook time must be a whole number from 0 to 1,440 minutes.",
+      },
+    ),
+
+  approximateCost: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) =>
+        value === undefined ||
+        value === "" ||
+        (/^\d+(\.\d{1,2})?$/.test(value) &&
+          Number(value) >= 0 &&
+          Number(value) <= 100000),
+      {
+        message:
+          "Estimated cost must be a non-negative amount with up to two decimal places.",
+      },
+    ),
+
+  servings: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) =>
+        value === undefined ||
+        value === "" ||
+        (/^\d+$/.test(value) &&
+          Number(value) >= 1 &&
+          Number(value) <= 1000),
+      {
+        message: "Servings must be a whole number from 1 to 1,000.",
+      },
+    ),
+
+  notes: z
+    .string()
+    .trim()
+    .max(5000, "Notes must be 5,000 characters or fewer.")
+    .optional(),
+});
+
+const CreateRecipeSchema = RecipeDetailsSchema.extend({
+  ingredients: z
+    .array(IngredientSchema)
+    .refine(
+      (ingredients) =>
+        ingredients.some((ingredient) => ingredient.name.trim().length > 0),
+      {
+        message: "Add at least one ingredient.",
+      },
+    ),
+
+  steps: z
+    .array(RecipeStepSchema)
+    .refine(
+      (steps) => steps.some((step) => step.instruction.trim().length > 0),
+      {
+        message: "Add at least one instruction step.",
+      },
+    ),
+});
+
+export type RecipeFormState = {
+  message: string;
+  errors: {
+    title?: string[];
+    ingredients?: string[];
+    steps?: string[];
+  };
+};
+
+function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
 export async function authenticate(
-  previousState: string | undefined,
+  _previousState: string | undefined,
   formData: FormData,
 ) {
   try {
@@ -41,125 +170,322 @@ export async function authenticate(
   }
 }
 
-export async function createRecipe(formData: FormData) {
+export async function createRecipe(
+  _previousState: RecipeFormState,
+  formData: FormData,
+): Promise<RecipeFormState> {
   const session = await auth();
 
   if (!session?.user?.id) {
     redirect("/login");
   }
 
-  const title = formData.get("title")?.toString().trim();
-  const description = formData.get("description")?.toString().trim() || null;
-  const cookTimeValue = formData.get("cookTime")?.toString().trim();
-  const costValue = formData.get("approximateCost")?.toString().trim();
-  const servingsValue = formData.get("servings")?.toString().trim();
-  const notes = formData.get("notes")?.toString().trim() || null;
+  let rawIngredients: unknown;
+  let rawSteps: unknown;
 
-  if (!title) {
-    throw new Error("Recipe title is required.");
+  try {
+    rawIngredients = JSON.parse(
+      formData.get("ingredients")?.toString() ?? "[]",
+    );
+
+    rawSteps = JSON.parse(
+      formData.get("steps")?.toString() ?? "[]",
+    );
+  } catch {
+  return {
+    message: "Ingredients or instructions contain invalid data.",
+    errors: {},
+  };
+}
+
+  const parsed = CreateRecipeSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description"),
+    cookTime: formData.get("cookTime"),
+    approximateCost: formData.get("approximateCost"),
+    servings: formData.get("servings"),
+    notes: formData.get("notes"),
+    ingredients: rawIngredients,
+    steps: rawSteps,
+  });
+
+  if (!parsed.success) {
+    const flattenedErrors = parsed.error.flatten();
+
+    return {
+      message: "Please correct the highlighted fields.",
+      errors: {
+        title: flattenedErrors.fieldErrors.title,
+        ingredients: flattenedErrors.fieldErrors.ingredients,
+        steps: flattenedErrors.fieldErrors.steps,
+      },
+    };
   }
 
-  const cookTime = cookTimeValue ? Number.parseInt(cookTimeValue, 10) : null;
-  const approximateCost = costValue ? Number.parseFloat(costValue) : null;
-  const servings = servingsValue
-    ? Number.parseInt(servingsValue, 10)
+  const {
+    title,
+    description,
+    cookTime,
+    approximateCost,
+    servings,
+    notes,
+    ingredients,
+    steps,
+  } = parsed.data;
+
+  const cookTimeMinutes = cookTime ? Number.parseInt(cookTime, 10) : null;
+
+  const cost = approximateCost
+    ? Number.parseFloat(approximateCost)
     : null;
 
-  const ingredients = JSON.parse(
-    formData.get("ingredients")?.toString() ?? "[]",
-  ) as Array<{
-    name: string;
-    quantity: string;
-    unit: string;
-    price: string;
-  }>;
+  const servingCount = servings
+    ? Number.parseInt(servings, 10)
+    : null;
 
-  const steps = JSON.parse(
-    formData.get("steps")?.toString() ?? "[]",
-  ) as Array<{
-    instruction: string;
-  }>;
-
-  const recipes = await sql<{ id: string }[]>`
-    INSERT INTO recipes (
-      user_id,
-      title,
-      description,
-      cook_time_minutes,
-      approximate_cost,
-      servings,
-      notes
-    )
-    VALUES (
-      ${session.user.id},
-      ${title},
-      ${description},
-      ${cookTime},
-      ${approximateCost},
-      ${servings},
-      ${notes}
-    )
-    RETURNING id;
-  `;
-
-  const recipeId = recipes[0].id;
-
-  const validIngredients = ingredients.filter(ingredient =>
+  const validIngredients = ingredients.filter((ingredient) =>
     ingredient.name.trim(),
   );
 
-  for (let index = 0; index < validIngredients.length; index += 1) {
-    const ingredient = validIngredients[index];
+  const validSteps = steps.filter((step) => step.instruction.trim());
 
-    const quantity = ingredient.quantity.trim() || null;
-    const unit = ingredient.unit.trim() || null;
-    const priceText = ingredient.price.trim();
-    const price = priceText ? Number.parseFloat(priceText) : null;
-
-    await sql`
-      INSERT INTO ingredients (
-        recipe_id,
-        name,
-        quantity,
-        unit,
-        price,
-        position
+  try {
+    const recipes = await sql<{ id: string }[]>`
+      INSERT INTO recipes (
+        user_id,
+        title,
+        description,
+        cook_time_minutes,
+        approximate_cost,
+        servings,
+        notes,
+        is_suggested
       )
       VALUES (
-        ${recipeId},
-        ${ingredient.name.trim()},
-        ${quantity},
-        ${unit},
-        ${price},
-        ${index + 1}
-      );
-    `;
-  }
-
-  const validSteps = steps.filter(step => step.instruction.trim());
-
-  for (let index = 0; index < validSteps.length; index += 1) {
-    await sql`
-      INSERT INTO recipe_steps (
-        recipe_id,
-        instruction,
-        position
+        ${session.user.id},
+        ${title},
+        ${description || null},
+        ${cookTimeMinutes},
+        ${cost},
+        ${servingCount},
+        ${notes || null},
+        FALSE
       )
-      VALUES (
-        ${recipeId},
-        ${validSteps[index].instruction.trim()},
-        ${index + 1}
-      );
+      RETURNING id;
     `;
+
+    const recipeId = recipes[0]?.id;
+
+    if (!recipeId) {
+      throw new Error("Failed to create recipe.");
+    }
+
+    for (let index = 0; index < validIngredients.length; index += 1) {
+      const ingredient = validIngredients[index];
+      const priceText = ingredient.price.trim();
+
+      const price = priceText
+        ? Number.parseFloat(priceText)
+        : null;
+
+      await sql`
+        INSERT INTO ingredients (
+          recipe_id,
+          name,
+          quantity,
+          unit,
+          price,
+          position
+        )
+        VALUES (
+          ${recipeId},
+          ${ingredient.name.trim()},
+          ${ingredient.quantity.trim() || null},
+          ${ingredient.unit.trim() || null},
+          ${price},
+          ${index + 1}
+        );
+      `;
+    }
+
+    for (let index = 0; index < validSteps.length; index += 1) {
+      const step = validSteps[index];
+
+      await sql`
+        INSERT INTO recipe_steps (
+          recipe_id,
+          instruction,
+          position
+        )
+        VALUES (
+          ${recipeId},
+          ${step.instruction.trim()},
+          ${index + 1}
+        );
+      `;
+    }
+  } catch (error) {
+    console.error("Create recipe error:", error);
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error("Unable to create recipe. Please try again.");
   }
 
   revalidatePath("/dashboard/my-recipes");
+  revalidatePath("/dashboard/suggested-recipes");
+
+  redirect("/dashboard/my-recipes");
+
+  return {
+  message: "",
+  errors: {},
+};
+}
+
+export async function updateRecipe(recipeId: string, formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  if (!isValidUuid(recipeId)) {
+    throw new Error("Invalid recipe ID.");
+  }
+
+  const parsed = RecipeDetailsSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description"),
+    cookTime: formData.get("cookTime"),
+    approximateCost: formData.get("approximateCost"),
+    servings: formData.get("servings"),
+    notes: formData.get("notes"),
+  });
+
+  if (!parsed.success) {
+    throw new Error(
+      parsed.error.issues[0]?.message ?? "Invalid recipe data.",
+    );
+  }
+
+  const {
+    title,
+    description,
+    cookTime,
+    approximateCost,
+    servings,
+    notes,
+  } = parsed.data;
+
+  const cookTimeMinutes = cookTime ? Number.parseInt(cookTime, 10) : null;
+
+  const cost = approximateCost
+    ? Number.parseFloat(approximateCost)
+    : null;
+
+  const servingCount = servings
+    ? Number.parseInt(servings, 10)
+    : null;
+
+  try {
+    const updatedRecipes = await sql<{ id: string }[]>`
+      UPDATE recipes
+      SET
+        title = ${title},
+        description = ${description || null},
+        cook_time_minutes = ${cookTimeMinutes},
+        approximate_cost = ${cost},
+        servings = ${servingCount},
+        notes = ${notes || null},
+        updated_at = NOW()
+      WHERE id = ${recipeId}
+        AND user_id = ${session.user.id}
+        AND is_suggested = FALSE
+      RETURNING id;
+    `;
+
+    if (updatedRecipes.length === 0) {
+      throw new Error(
+        "Recipe not found or you do not have permission to edit it.",
+      );
+    }
+  } catch (error) {
+    console.error("Update recipe error:", error);
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error("Unable to update recipe. Please try again.");
+  }
+
+  revalidatePath("/dashboard/my-recipes");
+  revalidatePath(`/dashboard/my-recipes/${recipeId}`);
+
+  redirect(`/dashboard/my-recipes/${recipeId}`);
+}
+
+export async function deleteRecipe(recipeId: string) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  if (!isValidUuid(recipeId)) {
+    throw new Error("Invalid recipe ID.");
+  }
+
+  try {
+    const ownedRecipes = await sql<{ id: string }[]>`
+      SELECT id
+      FROM recipes
+      WHERE id = ${recipeId}
+        AND user_id = ${session.user.id}
+        AND is_suggested = FALSE;
+    `;
+
+    if (ownedRecipes.length === 0) {
+      throw new Error("You do not have permission to delete this recipe.");
+    }
+
+    await sql`
+      DELETE FROM ingredients
+      WHERE recipe_id = ${recipeId};
+    `;
+
+    await sql`
+      DELETE FROM recipe_steps
+      WHERE recipe_id = ${recipeId};
+    `;
+
+    await sql`
+      DELETE FROM recipes
+      WHERE id = ${recipeId}
+        AND user_id = ${session.user.id}
+        AND is_suggested = FALSE;
+    `;
+  } catch (error) {
+    console.error("Delete recipe error:", error);
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error("Unable to delete recipe. Please try again.");
+  }
+
+  revalidatePath("/dashboard/my-recipes");
+  revalidatePath(`/dashboard/my-recipes/${recipeId}`);
 
   redirect("/dashboard/my-recipes");
 }
 
 export async function registerUser(
-  previousState: string | undefined,
+  _previousState: string | undefined,
   formData: FormData,
 ) {
   const parsed = RegisterSchema.safeParse({

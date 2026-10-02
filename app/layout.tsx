@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: {
-    default: "RecipeBook",
-    template: "%s | RecipeBook",
-  },
-  description: "Discover, save, and manage your favorite recipes.",
+  title: "RecipeBook",
+  description: "Save and organize your recipes.",
 };
 
 export default function RootLayout({
@@ -16,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-stone-50 text-stone-900">
+      <body className={`${nunito.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

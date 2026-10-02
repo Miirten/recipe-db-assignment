@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { fetchAllRecipes } from "@/app/lib/data";
+import { fetchSuggestedRecipes } from "@/app/lib/data";
 
-export default async function RecipesPage() {
-  const recipes = await fetchAllRecipes();
+export default async function SuggestedRecipesPage() {
+  const recipes = await fetchSuggestedRecipes();
 
   return (
     <section className="mx-auto max-w-6xl">
@@ -13,38 +13,25 @@ export default async function RecipesPage() {
           </p>
 
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-stone-900 md:text-4xl">
-            Recipes
+            Suggested Recipes
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
-            Browse recipes that have been added to RecipeBook.
+            Browse hand-picked recipe ideas from RecipeBook.
           </p>
         </div>
 
-        <Link
-          href="/dashboard/my-recipes/new"
-          className="w-fit rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
-        >
-          + Create recipe
-        </Link>
       </div>
 
       {recipes.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-stone-300 bg-white p-8 text-center">
           <h2 className="text-lg font-bold text-stone-900">
-            No recipes yet
+            No suggested recipes yet
           </h2>
 
           <p className="mt-2 text-sm text-stone-600">
-            Create the first recipe to see it here.
+            Check back soon for new recipe ideas.
           </p>
-
-          <Link
-            href="/dashboard/my-recipes/new"
-            className="mt-5 inline-block rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-700"
-          >
-            Create recipe
-          </Link>
         </div>
       ) : (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -92,11 +79,11 @@ export default async function RecipesPage() {
               </dl>
 
               <Link
-                href="/dashboard/my-recipes"
-                className="mt-5 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700"
-              >
-                View overview →
-              </Link>
+  href={`/dashboard/suggested-recipes/${recipe.id}`}
+  className="mt-5 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700"
+>
+  View recipe →
+</Link>
             </article>
           ))}
         </div>

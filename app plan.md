@@ -34,34 +34,34 @@
  a. show only owned recipes
  b. link to create recipe page
 
-10. build create recipe form
+~~10. build create recipe form~~
  a. fields for name, url, ingredients, steps
  b. add and remove ingredient rows and instruction rows
 
-11. create recipe server action
+~~11. create recipe server action~~
  a. validate form data with Zod
  b. save to database
  c. Use revalidatePath("/recipes")
  d. Use redirect("/recipes") after a successful save
 
-12. build recipe details
+~~12. build recipe details~~
  a. create route (/recipes/[id])
  b. display name, image, ingredient list, numbered instructions
  c. Use Next.js <Image> for the recipe picture.
 
-13. build editing
+~~13. build editing~~
  a. create /recipes/[id]/edit
  b. pre-fill form with saved recipe info
  c. add updateRecipe to server action
  d. verify that recipe belongs to logged-in user before update
 
-14. add deletion
+~~14. add deletion~~
  a. add button to recipe and recipe detail page
  b. create server action
  c. verify ownership before deleting
  d. revalidate recipes and redirect after deletion
 
-15. add error handling and polish
+~~15. add error handling and polish~~
  a. show validation error for missing title, ingredients, steps
  b. add loading states and error pages
  c. add fonts
@@ -71,5 +71,19 @@
 make it so you dont need to login to access the site, just too be able to access your own recipes
 
 tell users they are already logged in if they are logged in and click the login button
+
+~~wheh clicking the buttons to view details on the recipe cards, clicking off overview and back into it causes an error: invalid input syntax for type uuid: "undefined"~~
+
+suggested recipes needs updated to have top nav like my recipes
+
+add images
+
+move edit delete buttons
+
+~~my recipes does not populate ingredients, instructions, or notes yet~~
+
+the price field needs to automatically go to two decimals after being clicked off of.
+
+make it so users can edit ingredients etc. from the page itself, not just the card
 
  sidenav import: import SideNav from "@/app/ui/dashboard/sidenav";

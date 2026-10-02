@@ -9,7 +9,7 @@ export type User = {
 
 export type Recipe = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   title: string;
   description: string | null;
   cook_time_minutes: number | null;
@@ -18,6 +18,7 @@ export type Recipe = {
   ingredients: string | null;
   instructions: string | null;
   notes: string | null;
+  is_suggested: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -39,6 +40,6 @@ export type RecipeStep = {
   recipe_id: string;
   instruction: string;
   position: number;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
