@@ -265,15 +265,29 @@ export default function CreateRecipeForm() {
                 </span>
 
                 <input
-                  id="approximateCost"
-                  name="approximateCost"
-                  type="number"
-                  min="0"
-                  max="100000"
-                  step="0.01"
-                  className="w-full rounded-lg border border-stone-300 py-2.5 pl-7 pr-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                  placeholder="12.50"
-                />
+  id="approximateCost"
+  name="approximateCost"
+  type="number"
+  min="0"
+  max="100000"
+  step="0.01"
+  inputMode="decimal"
+  onBlur={(event) => {
+    const value = event.currentTarget.value;
+
+    if (value === "") {
+      return;
+    }
+
+    const amount = Number(value);
+
+    if (Number.isFinite(amount)) {
+      event.currentTarget.value = amount.toFixed(2);
+    }
+  }}
+  className="w-full rounded-lg border border-stone-300 py-2.5 pl-7 pr-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+  placeholder="12.50"
+/>
               </div>
             </div>
           </div>
@@ -404,18 +418,32 @@ export default function CreateRecipeForm() {
                     </span>
 
                     <input
-                      id={`ingredient-price-${index}`}
-                      type="number"
-                      min="0"
-                      max="100000"
-                      step="0.01"
-                      value={ingredient.price}
-                      onChange={(event) =>
-                        updateIngredient(index, "price", event.target.value)
-                      }
-                      className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-7 pr-3 text-stone-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-                      placeholder="2.99"
-                    />
+  id={`ingredient-price-${index}`}
+  type="number"
+  min="0"
+  max="100000"
+  step="0.01"
+  inputMode="decimal"
+  value={ingredient.price}
+  onChange={(event) =>
+    updateIngredient(index, "price", event.target.value)
+  }
+  onBlur={(event) => {
+    const value = event.currentTarget.value;
+
+    if (value === "") {
+      return;
+    }
+
+    const amount = Number(value);
+
+    if (Number.isFinite(amount)) {
+      updateIngredient(index, "price", amount.toFixed(2));
+    }
+  }}
+  className="w-full rounded-lg border border-stone-300 bg-white py-2.5 pl-7 pr-3 text-stone-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+  placeholder="2.99"
+/>
                   </div>
                 </div>
               </div>

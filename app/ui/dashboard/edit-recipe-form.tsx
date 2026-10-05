@@ -114,14 +114,33 @@ export default function EditRecipeForm({
           </label>
 
           <input
-            id="approximateCost"
-            name="approximateCost"
-            type="number"
-            min="0"
-            step="0.01"
-            defaultValue={recipe.approximate_cost ?? ""}
-            className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-stone-900"
-          />
+  id="approximateCost"
+  name="approximateCost"
+  type="number"
+  min="0"
+  max="100000"
+  step="0.01"
+  inputMode="decimal"
+  defaultValue={
+    recipe.approximate_cost !== null
+      ? Number(recipe.approximate_cost).toFixed(2)
+      : ""
+  }
+  onBlur={(event) => {
+    const value = event.currentTarget.value;
+
+    if (value === "") {
+      return;
+    }
+
+    const amount = Number(value);
+
+    if (Number.isFinite(amount)) {
+      event.currentTarget.value = amount.toFixed(2);
+    }
+  }}
+  className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-stone-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+/>
         </div>
       </div>
 

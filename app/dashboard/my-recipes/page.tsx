@@ -57,67 +57,67 @@ export default async function MyRecipesPage() {
         </div>
       ) : (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {recipes.map(recipe => (
+          {recipes.map((recipe) => (
             <article
               key={recipe.id}
-              className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm"
+              className="flex h-full flex-col rounded-xl border border-stone-200 bg-white p-6 shadow-sm"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-xl">
-                  🍲
+              <div className="flex-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-xl">
+                    🍲
+                  </div>
+
+                  {recipe.cook_time_minutes ? (
+                    <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">
+                      {recipe.cook_time_minutes} min
+                    </span>
+                  ) : null}
                 </div>
 
-                {recipe.cook_time_minutes ? (
-                  <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-600">
-                    {recipe.cook_time_minutes} min
-                  </span>
-                ) : null}
+                <Link
+                  href={`/dashboard/my-recipes/${recipe.id}`}
+                  className="mt-5 block text-xl font-bold text-stone-900 transition-colors hover:text-orange-700"
+                >
+                  {recipe.title}
+                </Link>
+
+                <p className="mt-2 text-sm leading-6 text-stone-600">
+                  {recipe.description ?? "No description has been added yet."}
+                </p>
+
+                <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-stone-200 pt-4 text-sm">
+                  <div>
+                    <dt className="text-stone-500">Cook time</dt>
+                    <dd className="mt-1 font-semibold text-stone-800">
+                      {recipe.cook_time_minutes
+                        ? `${recipe.cook_time_minutes} min`
+                        : "—"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt className="text-stone-500">Servings</dt>
+                    <dd className="mt-1 font-semibold text-stone-800">
+                      {recipe.servings ?? "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
 
-              <h2 className="mt-5 text-xl font-bold text-stone-900">
-                {recipe.title}
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                {recipe.description ?? "No description has been added yet."}
-              </p>
-
-              <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-stone-200 pt-4 text-sm">
-                <div>
-                  <dt className="text-stone-500">Cook time</dt>
-                  <dd className="mt-1 font-semibold text-stone-800">
-                    {recipe.cook_time_minutes
-                      ? `${recipe.cook_time_minutes} min`
-                      : "—"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-stone-500">Servings</dt>
-                  <dd className="mt-1 font-semibold text-stone-800">
-                    {recipe.servings ?? "—"}
-                  </dd>
-                </div>
-              </dl>
-
-              <DeleteRecipeButton
-  recipeId={recipe.id}
-  recipeTitle={recipe.title}
-/>
-
-<Link
-  href={`/dashboard/my-recipes/${recipe.id}/edit`}
-  className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50"
->
-  Edit recipe
-</Link>
-
-              <Link
-                href={`/dashboard/my-recipes/${recipe.id}`}
-                className="mt-5 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700"
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-stone-200 pt-4">
+                <Link
+                  href={`/dashboard/my-recipes/${recipe.id}/edit`}
+                  className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50"
                 >
-                View recipe →
-              </Link>
+                  Edit
+                </Link>
+
+                <DeleteRecipeButton
+                  recipeId={recipe.id}
+                  recipeTitle={recipe.title}
+                />
+              </div>
             </article>
           ))}
         </div>

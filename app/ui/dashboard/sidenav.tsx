@@ -1,58 +1,74 @@
 import Link from "next/link";
-import LogoutButton from "@/app/ui/dashboard/logout-button";
+import { auth, signOut } from "@/auth";
 
-const links = [
-  {
-    name: "Home",
-    href: "/dashboard",
-  },
-  {
-    name: "Log in",
-    href: "/login",
-  },
-  {
-    name: "Suggested Recipes",
-    href: "/dashboard/suggested-recipes",
-  },
-  {
-    name: "My Recipes",
-    href: "/dashboard/my-recipes",
-  },
-];
+export default async function SideNav() {
+  const session = await auth();
+  const userName = session?.user?.name?.trim();
 
-export default function SideNav() {
   return (
-    <aside className="w-full border-b border-stone-200 bg-white p-4 md:min-h-screen md:w-64 md:border-b-0 md:border-r">
-      <div className="mb-6">
+    <aside className="flex h-full flex-col bg-orange-600 p-4 md:w-64">
+      <Link
+        href="/"
+        className="rounded-lg px-3 py-3 text-xl font-bold text-white hover:bg-orange-700"
+      >
+        RecipeBook
+      </Link>
+
+      <nav className="mt-8 flex flex-1 flex-col gap-2">
         <Link
-          href="/"
-          className="text-2xl font-bold tracking-tight text-orange-600"
+          href="/dashboard/suggested-recipes"
+          className="rounded-lg px-3 py-2.5 text-sm font-semibold text-orange-50 transition hover:bg-orange-700"
         >
-          RecipeBook
+          Suggested Recipes
         </Link>
 
-        <p className="mt-1 text-sm text-stone-500">
-          Save and share recipes you love.
-        </p>
-      </div>
-
-      <nav aria-label="Main navigation">
-        <ul className="flex gap-2 overflow-x-auto md:flex-col md:overflow-visible">
-          {links.map(link => (
-            <li key={link.href} className="shrink-0">
-              <Link
-                href={link.href}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-orange-50 hover:text-orange-700"
-              >
-                {link.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {session?.user ? (
+          <Link
+            href="/dashboard/my-recipes"
+            className="rounded-lg px-3 py-2.5 text-sm font-semibold text-orange-50 transition hover:bg-orange-700"
+          >
+            My Recipes
+          </Link>
+        ) : null}
       </nav>
-      <div className="mt-6 border-t border-stone-200 pt-4">
-  <LogoutButton />
-</div>
+
+      <div className="mt-6 border-t border-orange-500 pt-4">
+        {session?.user ? (
+          <>
+            <p className="px-3 text-sm font-semibold text-white">
+              {userName || "Signed in"}
+            </p>
+
+            {session.user.email ? (
+              <p className="mt-1 truncate px-3 text-xs text-orange-100">
+                {session.user.email}
+              </p>
+            ) : null}
+
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/" });
+              }}
+              className="mt-3"
+            >
+              <button
+                type="submit"
+                className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-orange-50 transition hover:bg-orange-700"
+              >
+                Log out
+              </button>
+            </form>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-orange-50 transition hover:bg-orange-700"
+          >
+            Log in
+          </Link>
+        )}
+      </div>
     </aside>
   );
 }

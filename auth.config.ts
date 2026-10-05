@@ -5,18 +5,20 @@ export const authConfig = {
     signIn: "/login",
   },
 
-  callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+callbacks: {
+  authorized({ auth, request: { nextUrl } }) {
+    const isLoggedIn = Boolean(auth?.user);
 
-      if (isOnDashboard) {
-        return isLoggedIn;
-      }
+    const isMyRecipesRoute =
+      nextUrl.pathname.startsWith("/dashboard/my-recipes");
 
-      return true;
-    },
+    if (isMyRecipesRoute) {
+      return isLoggedIn;
+    }
+
+    return true;
   },
+},
 
   providers: [],
 } satisfies NextAuthConfig;

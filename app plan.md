@@ -68,22 +68,20 @@
  d. verify desktop and mobile formats
 
 16. more polishing  
-make it so you dont need to login to access the site, just too be able to access your own recipes
+~~make it so you dont need to login to access the site, just too be able to access your own recipes~~
 
-tell users they are already logged in if they are logged in and click the login button
+~~move login button to bottom of stack~~
+
+~~add usernamne and show while logged in~~
 
 ~~wheh clicking the buttons to view details on the recipe cards, clicking off overview and back into it causes an error: invalid input syntax for type uuid: "undefined"~~
 
-suggested recipes needs updated to have top nav like my recipes
-
 add images
 
-move edit delete buttons
+~~move edit delete buttons~~
 
 ~~my recipes does not populate ingredients, instructions, or notes yet~~
 
-the price field needs to automatically go to two decimals after being clicked off of.
+~~the price field needs to automatically go to two decimals after being clicked off of.~~
 
-make it so users can edit ingredients etc. from the page itself, not just the card
 
- sidenav import: import SideNav from "@/app/ui/dashboard/sidenav";

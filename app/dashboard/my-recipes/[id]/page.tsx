@@ -35,11 +35,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
         ← Back to My Recipes
       </Link>
 
-        <DeleteRecipeButton
-    recipeId={recipe.id}
-    recipeTitle={recipe.title}
-  />
-
       <div className="mt-6">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-600">
           Recipe overview
@@ -90,6 +85,10 @@ export default async function RecipePage({ params }: RecipePageProps) {
               : "Not added"}
           </p>
         </div>
+         <DeleteRecipeButton
+    recipeId={recipe.id}
+    recipeTitle={recipe.title}
+  />
       </div>
     </section>
   );

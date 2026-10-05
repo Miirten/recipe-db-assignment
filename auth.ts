@@ -22,6 +22,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
       }
 
       return token;
@@ -30,6 +31,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string | null;
       }
 
       return session;
@@ -71,7 +73,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const passwordsMatch = await bcrypt.compare(password, user.password);
+        const passwordsMatch = await bcrypt.compare(
+          password,
+          user.password,
+        );
 
         if (!passwordsMatch) {
           return null;
